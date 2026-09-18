@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, TypeVar, cast
 
+import httpx
+
 from dnscale_api.models.error_response import ErrorResponse
 from dnscale_api.types import Response, Unset
 
@@ -40,6 +42,38 @@ class RateLimitError(APIError):
 
 class ProtocolError(Exception):
     """The API returned a successful response that did not match its contract."""
+
+
+def _check_error_body(response: httpx.Response) -> None:
+    try:
+        body = response.json()
+        if isinstance(body, dict) and isinstance(body.get("error"), dict):
+            error = body["error"]
+            if isinstance(error.get("code"), str) and isinstance(error.get("message"), str):
+                return
+    except ValueError:
+        pass
+    kwargs: dict[str, Any] = {
+        "status_code": response.status_code,
+        "code": "HTTP_ERROR",
+        "message": "DNScale returned an HTTP error without a valid API error envelope",
+        "request_id": response.headers.get("X-Request-ID"),
+    }
+    if response.status_code == 429:
+        raise RateLimitError(retry_after=response.headers.get("Retry-After"), **kwargs)
+    raise APIError(**kwargs)
+
+
+def check_error_response(response: httpx.Response) -> None:
+    if response.status_code >= 400:
+        response.read()
+        _check_error_body(response)
+
+
+async def acheck_error_response(response: httpx.Response) -> None:
+    if response.status_code >= 400:
+        await response.aread()
+        _check_error_body(response)
 
 
 def unwrap(response: Response[T | ErrorResponse]) -> T | None:

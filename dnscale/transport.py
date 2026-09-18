@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import ssl
 import time
 from datetime import datetime, timezone
@@ -20,14 +21,16 @@ def _retry_delay(response: httpx.Response | None, retry_number: int, backoff: fl
         retry_after = response.headers.get("Retry-After")
         if retry_after:
             try:
-                return min(max(float(retry_after), 0.0), _MAX_RETRY_DELAY)
+                seconds = float(retry_after)
+                if math.isfinite(seconds):
+                    return max(seconds, 0.0)
             except ValueError:
                 try:
                     retry_at = parsedate_to_datetime(retry_after)
                     if retry_at.tzinfo is None:
                         retry_at = retry_at.replace(tzinfo=timezone.utc)
                     seconds = (retry_at - datetime.now(timezone.utc)).total_seconds()
-                    return min(max(seconds, 0.0), _MAX_RETRY_DELAY)
+                    return max(seconds, 0.0)
                 except (TypeError, ValueError, OverflowError):
                     pass
     return min(backoff * (2 ** (retry_number - 1)), _MAX_RETRY_DELAY)
@@ -64,6 +67,9 @@ class RetryTransport(httpx.BaseTransport):
                     response.status_code not in _RETRYABLE_STATUS_CODES
                     or retry_number > self._max_retries
                 ):
+                    return response
+                # A server delay above our budget must be surfaced, never shortened.
+                if _retry_delay(response, retry_number, self._backoff) > _MAX_RETRY_DELAY:
                     return response
                 response.close()
 
@@ -108,6 +114,8 @@ class AsyncRetryTransport(httpx.AsyncBaseTransport):
                     response.status_code not in _RETRYABLE_STATUS_CODES
                     or retry_number > self._max_retries
                 ):
+                    return response
+                if _retry_delay(response, retry_number, self._backoff) > _MAX_RETRY_DELAY:
                     return response
                 await response.aclose()
 

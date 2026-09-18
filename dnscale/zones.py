@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator, Iterator
 from uuid import UUID
 
 from dnscale_api import AuthenticatedClient
@@ -18,6 +19,7 @@ from dnscale_api.models.zones_response import ZonesResponse
 from dnscale_api.types import UNSET, Unset
 
 from .errors import expect, unwrap
+from .pagination import next_offset, validate_page_size
 
 
 def _uuid(value: str | UUID) -> UUID:
@@ -29,6 +31,31 @@ class Zones:
 
     def __init__(self, client: AuthenticatedClient) -> None:
         self._client = client
+
+    def iter(self, *, page_size: int = 100) -> Iterator[Zone]:
+        """Lazily fetch every page. Lists are not an atomic snapshot."""
+        validate_page_size(page_size)
+        offset = 0
+        while True:
+            page = self.list(offset=offset, limit=page_size)
+            following = next_offset(page.pagination, offset, len(page.zones))
+            yield from page.zones
+            if following is None:
+                return
+            offset = following
+
+    async def aiter(self, *, page_size: int = 100) -> AsyncIterator[Zone]:
+        """Asynchronously fetch every page as it is consumed."""
+        validate_page_size(page_size)
+        offset = 0
+        while True:
+            page = await self.alist(offset=offset, limit=page_size)
+            following = next_offset(page.pagination, offset, len(page.zones))
+            for zone in page.zones:
+                yield zone
+            if following is None:
+                return
+            offset = following
 
     def list(self, *, offset: int = 0, limit: int = 10) -> ZonesData:
         response = list_zones.sync_detailed(client=self._client, offset=offset, limit=limit)

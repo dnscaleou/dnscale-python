@@ -10,6 +10,7 @@ import httpx
 
 from dnscale_api import AuthenticatedClient
 
+from .errors import acheck_error_response, check_error_response
 from .records import Records
 from .transport import AsyncRetryTransport, RetryTransport
 from .zones import Zones
@@ -55,6 +56,7 @@ class DNScale:
         }
 
         sync_client = httpx.Client(
+            event_hooks={"response": [check_error_response]},
             base_url=normalized_base_url,
             headers=request_headers,
             timeout=timeout,
@@ -68,6 +70,7 @@ class DNScale:
             ),
         )
         async_client = httpx.AsyncClient(
+            event_hooks={"response": [acheck_error_response]},
             base_url=normalized_base_url,
             headers=request_headers,
             timeout=timeout,
@@ -102,9 +105,12 @@ class DNScale:
         self.client.get_httpx_client().close()
 
     async def aclose(self) -> None:
-        """Close the asynchronous HTTP client."""
+        """Close both clients, including any sync calls used in an async workflow."""
 
-        await self.client.get_async_httpx_client().aclose()
+        try:
+            await self.client.get_async_httpx_client().aclose()
+        finally:
+            self.close()
 
     def __enter__(self) -> DNScale:
         return self

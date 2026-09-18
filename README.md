@@ -55,6 +55,43 @@ async def list_zone_names() -> list[str]:
 `DNScale` retries transient failures for `GET`, `HEAD`, and `OPTIONS` requests.
 It never automatically retries mutations such as record or zone creation. Set
 `max_retries=0` to disable retries.
+If `Retry-After` exceeds the 30-second retry waiting budget, the response is
+surfaced immediately instead of retrying before the server permits it. HTTP-date
+and numeric delay values are supported. Network errors remain `httpx` errors.
+
+## Pagination and record identity
+
+`list()` returns one page. Use lazy iterators to traverse all pages:
+
+```python
+with DNScale() as dns:
+    for zone in dns.zones.iter():
+        for record in dns.records.iter(zone.id):
+            print(zone.name, record.name, record.content)
+```
+
+Async equivalents are `zones.aiter()` and `records.aiter(zone_id)`. Iterators
+honour the returned page size and reject inconsistent pagination. Offset-based
+listing is not an atomic snapshot if another client changes the zone concurrently.
+
+Record IDs are opaque and content-derived: use the **returned ID after an
+update**. By-name helpers can avoid retaining an ID:
+
+```python
+from dnscale_api.models import UpdateRecordByNameRequest
+
+with DNScale() as dns:
+    updated = dns.records.update_by_name(
+        zone_id, "_acme-challenge.example.com.", "TXT",
+        content="old-value",  # select this value in a multi-value RRset
+        body=UpdateRecordByNameRequest(content="new-value", ttl=300),
+    )
+    dns.records.delete_by_name(zone_id, updated.name, "TXT", content="new-value")
+```
+
+Omitting `content` from `delete_by_name()` deletes the **entire RRset**. Empty
+content is rejected by the helper to prevent accidental whole-RRset deletion.
+Async variants are `aupdate_by_name()` and `adelete_by_name()`.
 
 ## Errors
 
@@ -111,3 +148,21 @@ ruff check sdks/python/dnscale sdks/python/tests
 ruff format --check sdks/python/dnscale sdks/python/tests
 uv build --directory sdks/python
 ```
+
+In a standalone checkout, install with `pip install -e '.[dev]'`, run
+`python -m pytest`, and regenerate with `bash scripts/generate.sh`. The bundled
+`openapi.yaml` and `generator.yaml` are copied from the DNScale monorepo.
+
+Live verification is explicitly opt-in and creates/deletes a unique test zone:
+
+```bash
+export DNSCALE_TEST_BASE_URL=https://api-sandbox.dnscale.eu/v1
+export DNSCALE_TEST_API_KEY=your-disposable-account-key
+DNSCALE_LIVE_TEST=1 python -m pytest tests/test_live.py
+```
+
+The test uses separate credentials from `DNSCALE_API_KEY`. Use a disposable
+account with zone and record read/write scopes. No real domain delegation is
+needed. Tests are skipped when `DNSCALE_LIVE_TEST` is not `1`.
+
+See [RELEASING.md](RELEASING.md) for package validation and publishing.
