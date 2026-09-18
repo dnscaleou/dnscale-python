@@ -1,0 +1,2 @@
+include GENERATION.md RELEASING.md openapi.yaml generator.yaml
+recursive-include scripts *.sh

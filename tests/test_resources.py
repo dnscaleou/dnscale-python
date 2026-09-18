@@ -184,3 +184,36 @@ def test_no_mutation_is_retried(method) -> None:
     with client(handler) as dns:
         assert dns.client.get_httpx_client().request(method, "/zones").status_code == 503
     assert len(attempts) == 1
+
+
+def test_async_record_helpers_preserve_selectors_and_returned_ids() -> None:
+    methods = []
+
+    def handler(request):
+        methods.append(request.method)
+        if request.method == "DELETE":
+            assert request.url.params["content"] == "second"
+            return httpx.Response(204)
+        if request.method == "PUT":
+            assert request.url.params["content"] == "first"
+        content = json.loads(request.content)["content"]
+        return httpx.Response(
+            201 if request.method == "POST" else 200,
+            json={"status": "success", "data": {"record": record(content, content)}},
+        )
+
+    async def exercise():
+        async with client(handler) as dns:
+            created = await dns.records.acreate(ZONE_ID, name="www", type_="TXT", content="first")
+            updated = await dns.records.aupdate_by_name(
+                ZONE_ID,
+                created.name,
+                "TXT",
+                content=created.content,
+                body=UpdateRecordByNameRequest(content="second"),
+            )
+            assert updated.id != created.id
+            await dns.records.adelete_by_name(ZONE_ID, updated.name, "TXT", content=updated.content)
+
+    asyncio.run(exercise())
+    assert methods == ["POST", "PUT", "DELETE"]

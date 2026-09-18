@@ -1,45 +1,32 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, TypeVar, BinaryIO, TextIO, TYPE_CHECKING, Generator
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
-from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
-
-from ..types import UNSET, Unset
-
-
-
-
-
 
 T = TypeVar("T", bound="ProviderCredentials")
 
 
-
 @_attrs_define
 class ProviderCredentials:
-    """ Credentials are accepted on create and are never returned.
+    """Credentials are accepted on create and are never returned.
 
-        Attributes:
-            api_key (str | Unset):
-            api_token (str | Unset):
-            access_key_id (str | Unset):
-            secret_access_key (str | Unset):
-            region (str | Unset):
-     """
+    Attributes:
+        api_key (str | Unset):
+        api_token (str | Unset):
+        access_key_id (str | Unset):
+        secret_access_key (str | Unset):
+        region (str | Unset):
+    """
 
     api_key: str | Unset = UNSET
     api_token: str | Unset = UNSET
     access_key_id: str | Unset = UNSET
     secret_access_key: str | Unset = UNSET
     region: str | Unset = UNSET
-
-
-
-
 
     def to_dict(self) -> dict[str, Any]:
         api_key = self.api_key
@@ -52,11 +39,9 @@ class ProviderCredentials:
 
         region = self.region
 
-
         field_dict: dict[str, Any] = {}
 
-        field_dict.update({
-        })
+        field_dict.update({})
         if api_key is not UNSET:
             field_dict["api_key"] = api_key
         if api_token is not UNSET:
@@ -69,8 +54,6 @@ class ProviderCredentials:
             field_dict["region"] = region
 
         return field_dict
-
-
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
@@ -94,4 +77,3 @@ class ProviderCredentials:
         )
 
         return provider_credentials
-

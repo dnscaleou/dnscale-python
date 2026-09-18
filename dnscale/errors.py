@@ -47,7 +47,11 @@ class ProtocolError(Exception):
 def _check_error_body(response: httpx.Response) -> None:
     try:
         body = response.json()
-        if isinstance(body, dict) and isinstance(body.get("error"), dict):
+        if (
+            isinstance(body, dict)
+            and body.get("status") == "error"
+            and isinstance(body.get("error"), dict)
+        ):
             error = body["error"]
             if isinstance(error.get("code"), str) and isinstance(error.get("message"), str):
                 return
