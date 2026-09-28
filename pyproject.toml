@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dnscale-sdk"
+name = "dnscale"
 version = "0.1.0"
 description = "Official Python SDK for the DNScale API"
 readme = "README.md"
@@ -38,7 +38,8 @@ dev = [
 [project.urls]
 Documentation = "https://docs.dnscale.eu"
 Homepage = "https://dnscale.eu"
-Repository = "https://github.com/dnscaleou/dnscale"
+Repository = "https://github.com/dnscaleou/dnscale-python"
+Issues = "https://github.com/dnscaleou/dnscale-python/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

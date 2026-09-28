@@ -6,3 +6,10 @@ __pycache__/
 dist/
 build/
 .env*
+/.pypirc
+/.npmrc
+*.pem
+*.key
+.DS_Store
+# Operator instructions are kept locally, outside the public SDK history.
+/RELEASING.md

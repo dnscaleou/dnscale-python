@@ -1,2 +1,4 @@
-include GENERATION.md RELEASING.md openapi.yaml generator.yaml
+include GENERATION.md openapi.yaml generator.yaml
 recursive-include scripts *.sh
+exclude RELEASING.md .pypirc .npmrc
+global-exclude .env .env.* *.pem *.key

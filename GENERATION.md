@@ -1,13 +1,12 @@
 # Generated client policy
 
-`dnscale_api/` is generated from `docs/openapi.yaml`; do not edit it manually.
+`dnscale_api/` is generated from the bundled `openapi.yaml`; do not edit it manually.
 `dnscale/` is the stable, handwritten layer and is preserved during regeneration.
 
 From the repository root:
 
 ```bash
-cd docs && npm run validate
-cd .. && ./scripts/generate-python-sdk.sh
+bash scripts/generate.sh
 ```
 
 The script pins `openapi-python-client` so regeneration is deterministic. Review
@@ -19,7 +18,7 @@ the same model files are formatted in standalone and monorepo checkouts. The
 generated `provider_credentials.py` contains schema definitions, not secrets,
 and must remain tracked despite the monorepo's broad credentials ignore rule.
 
-In a standalone SDK checkout, run `bash scripts/generate.sh`. Its inputs are the
-bundled `openapi.yaml` and `generator.yaml`. The monorepo script synchronizes
-these copies before invoking the same generator. Do not edit the copies to
-change API behaviour; update the authoritative contract first.
+Its inputs are the bundled `openapi.yaml` and `generator.yaml`. These are
+maintainer-synchronized copies of the authoritative API contract and generator
+configuration. Do not edit the copies to change API behaviour; propose API
+changes to the maintainers first, then regenerate from the approved contract.

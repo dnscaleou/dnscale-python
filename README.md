@@ -2,19 +2,22 @@
 
 The official Python client for the DNScale API. It supports Python 3.10 and newer,
 provides synchronous and asynchronous calls, and is generated from the public
-OpenAPI contract in `docs/openapi.yaml`.
+OpenAPI contract bundled as [openapi.yaml](openapi.yaml).
 
-The package is not published to PyPI yet. Install it from this repository while
-the `0.1.x` API is being stabilized:
+## Installation
+
+Install a published release from PyPI:
 
 ```bash
-pip install ./sdks/python
+python -m pip install dnscale
 ```
 
-After the first release, the distribution name will be `dnscale-sdk`:
+The distribution and import name are both `dnscale`; the source repository is
+`dnscale-python`. Before the first PyPI release, or to work from source, clone
+this repository and install from its root:
 
 ```bash
-pip install dnscale-sdk
+python -m pip install .
 ```
 
 ## Quick start
@@ -132,31 +135,31 @@ Each generated operation has `sync`, `sync_detailed`, `asyncio`, and
 
 ## Development
 
-Do not edit `dnscale_api` by hand. Regenerate it from the repository root after
-changing the OpenAPI contract:
+From this repository's root, install development dependencies and regenerate
+the client. Python 3.10+ and [uv](https://docs.astral.sh/uv/) are required.
+Do not edit `dnscale_api` by hand.
 
 ```bash
-cd docs && npm run validate
-cd .. && ./scripts/generate-python-sdk.sh
+python -m pip install -e '.[dev]'
+bash scripts/generate.sh
 ```
 
 The generator version is pinned in the script. To verify the package:
 
 ```bash
-python -m pytest sdks/python/tests
-ruff check sdks/python/dnscale sdks/python/tests
-ruff format --check sdks/python/dnscale sdks/python/tests
-uv build --directory sdks/python
+python -m pytest
+ruff check dnscale tests
+ruff format --check dnscale tests
+uv build
 ```
 
-In a standalone checkout, install with `pip install -e '.[dev]'`, run
-`python -m pytest`, and regenerate with `bash scripts/generate.sh`. The bundled
-`openapi.yaml` and `generator.yaml` are copied from the DNScale monorepo.
+The generator is pinned; see [GENERATION.md](GENERATION.md) for the contract
+update policy. Commit the reviewed generated changes with their input changes.
 
 Live verification is explicitly opt-in and creates/deletes a unique test zone:
 
 ```bash
-export DNSCALE_TEST_BASE_URL=https://api-sandbox.dnscale.eu/v1
+export DNSCALE_TEST_BASE_URL=https://your-sandbox.example/v1
 export DNSCALE_TEST_API_KEY=your-disposable-account-key
 DNSCALE_LIVE_TEST=1 python -m pytest tests/test_live.py
 ```
@@ -165,4 +168,5 @@ The test uses separate credentials from `DNSCALE_API_KEY`. Use a disposable
 account with zone and record read/write scopes. No real domain delegation is
 needed. Tests are skipped when `DNSCALE_LIVE_TEST` is not `1`.
 
-See [RELEASING.md](RELEASING.md) for package validation and publishing.
+Report bugs and feature requests in the
+[issue tracker](https://github.com/dnscaleou/dnscale-python/issues).
