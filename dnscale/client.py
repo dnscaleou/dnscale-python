@@ -50,7 +50,7 @@ class DNScale:
         normalized_base_url = base_url.rstrip("/")
         request_headers = {
             "Accept": "application/json",
-            "User-Agent": "dnscale-python/0.1.0",
+            "User-Agent": "dnscale-python/1.0.0",
             **dict(headers or {}),
             "Authorization": f"Bearer {token}",
         }

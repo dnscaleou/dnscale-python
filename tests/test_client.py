@@ -59,7 +59,7 @@ def test_list_zones_uses_authentication_and_versioned_base_url() -> None:
         assert request.method == "GET"
         assert request.url == "https://api.example.test/v1/zones?offset=0&limit=10"
         assert request.headers["Authorization"] == "Bearer test-key"
-        assert request.headers["User-Agent"] == "dnscale-python/0.1.0"
+        assert request.headers["User-Agent"] == "dnscale-python/1.0.0"
         return httpx.Response(200, json=_zones_response())
 
     sdk = _client(handler)

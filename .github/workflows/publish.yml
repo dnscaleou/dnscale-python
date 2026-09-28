@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Reviewed version tag (v0.1.0)
+        description: Reviewed version tag (v1.0.0)
         required: true
       target:
         type: choice

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnscale"
-version = "0.1.0"
+version = "1.0.0"
 description = "Official Python SDK for the DNScale API"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -15,7 +15,6 @@ authors = [
 ]
 keywords = ["dns", "dnscale", "api", "sdk"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
